@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.goett</groupId>
 	<artifactId>email-sender</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<name>email-sender</name>
 	<description/>
 	<url/>
@@ -78,6 +78,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>2.0.1.Final</version>
 		</dependency>
 	</dependencies>
 
