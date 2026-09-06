@@ -29,28 +29,39 @@ public class EmailService {
 
     private final String templatePath;
     private final String cvPath;
+    private final String templateIaPath;
+    private final String cvIaPath;
 
     public EmailService(
             Gmail gmail,
             @Value("${email.template.path}") String templatePath,
-            @Value("${email.cv.path}") String cvPath) {
+            @Value("${email.cv.path}") String cvPath,
+            @Value("${email.template.ia.path}") String templateIaPath,
+            @Value("${email.cv.ia.path}") String cvIaPath) {
 
         this.gmail = gmail;
         this.templatePath = templatePath;
         this.cvPath = cvPath;
+        this.templateIaPath = templateIaPath;
+        this.cvIaPath = cvIaPath;
     }
 
     public void sendEmail(
             String to,
             String subject,
-            String cargo) throws Exception {
+            String cargo,
+            boolean vagaIA) throws Exception {
 
-        String body = loadEmailTemplate(cargo);
+        String selectedTemplatePath = vagaIA ? templateIaPath : templatePath;
+        String selectedCvPath = vagaIA ? cvIaPath : cvPath;
+
+        String body = loadEmailTemplate(cargo, selectedTemplatePath);
 
         MimeMessage mimeMessage = createMimeMessage(
                 to,
                 subject,
-                body);
+                body,
+                selectedCvPath);
 
         Message gmailMessage = createGmailMessage(mimeMessage);
 
@@ -60,10 +71,10 @@ public class EmailService {
                 .execute();
     }
 
-    private String loadEmailTemplate(String cargo)
+    private String loadEmailTemplate(String cargo, String templateFilePath)
             throws Exception {
 
-        Path path = Paths.get(templatePath);
+        Path path = Paths.get(templateFilePath);
 
         if (!Files.exists(path)) {
             throw new IllegalStateException(
@@ -83,7 +94,8 @@ public class EmailService {
     private MimeMessage createMimeMessage(
             String to,
             String subject,
-            String body) throws Exception {
+            String body,
+            String selectedCvPath) throws Exception {
 
         Properties properties = new Properties();
 
@@ -104,7 +116,7 @@ public class EmailService {
 
         MimeBodyPart htmlPart = createHtmlPart(body);
 
-        MimeBodyPart attachmentPart = createCvAttachment();
+        MimeBodyPart attachmentPart = createCvAttachment(selectedCvPath);
 
         Multipart multipart = new MimeMultipart();
 
@@ -128,10 +140,10 @@ public class EmailService {
         return htmlPart;
     }
 
-    private MimeBodyPart createCvAttachment()
+    private MimeBodyPart createCvAttachment(String selectedCvPath)
             throws Exception {
 
-        Path path = Paths.get(cvPath);
+        Path path = Paths.get(selectedCvPath);
 
         if (!Files.exists(path)) {
             throw new IllegalStateException(

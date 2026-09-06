@@ -25,7 +25,8 @@ public class EmailController {
             emailService.sendEmail(
                     request.to(),
                     request.subject(),
-                    request.cargo());
+                    request.cargo(),
+                    request.vagaIA());
 
             return ResponseEntity.status(HttpStatus.OK)
                     .body("E-mail enviado com sucesso.");

@@ -234,7 +234,9 @@ email-sender/
 │
 ├── templates/
 │   ├── email-body.html
-│   └── CV_Guilherme_Augusto_Goettnauer_2026.docx
+│   ├── email-body-ia.html
+│   ├── CV_Guilherme_Augusto_Goettnauer_2026.docx
+│   └── CV_Guilherme_Augusto_Goettnauer_2026_AI.docx
 │
 ├── Dockerfile
 ├── docker-compose.yml
@@ -268,7 +270,21 @@ application/json
 {
   "to": "destinatario@example.com",
   "subject": "Oportunidade Java Senior",
-  "cargo": "Desenvolvedor Java Sênior"
+  "cargo": "Desenvolvedor Java Sênior",
+  "vagaIA": false
+}
+```
+
+O campo `vagaIA` é obrigatório (`true` ou `false`). Quando `true`, a aplicação usa o template `email-body-ia.html` e anexa `CV_Guilherme_Augusto_Goettnauer_2026_AI.docx`.
+
+Exemplo de perfil de IA:
+
+```json
+{
+  "to": "destinatario@example.com",
+  "subject": "Oportunidade Engenheiro de IA",
+  "cargo": "Engenheiro de Machine Learning",
+  "vagaIA": true
 }
 ```
 
@@ -292,7 +308,8 @@ curl -X POST http://localhost:8080/api/emails/send \
   -d '{
     "to": "destinatario@example.com",
     "subject": "Oportunidade Java Senior",
-    "cargo": "Desenvolvedor Java Sênior"
+    "cargo": "Desenvolvedor Java Sênior",
+    "vagaIA": false
   }'
 ```
 
@@ -310,6 +327,8 @@ POST /api/emails/send
           │
           ▼
      EmailService
+          │
+          ├── Seleciona template e CV conforme vagaIA
           │
           ├── Carrega template HTML
           │
@@ -336,7 +355,10 @@ POST /api/emails/send
 
 # 📝 Template de e-mail
 
-O corpo do e-mail é carregado de um arquivo HTML configurável.
+O corpo do e-mail é carregado de um arquivo HTML configurável, escolhido pelo campo `vagaIA` da requisição:
+
+* `vagaIA: false` → `templates/email-body.html` (`email.template.path`)
+* `vagaIA: true` → `templates/email-body-ia.html` (`email.template.ia.path`)
 
 Exemplo:
 
@@ -375,17 +397,21 @@ Antes da substituição, o valor é tratado através de escaping HTML para evita
 
 A aplicação também permite adicionar um arquivo ao e-mail.
 
-Atualmente o projeto está configurado para utilizar um currículo como anexo:
+O currículo anexado depende de `vagaIA`:
 
 ```text
-CV_Guilherme_Augusto_Goettnauer_2026.docx
+vagaIA false → CV_Guilherme_Augusto_Goettnauer_2026.docx
+vagaIA true  → CV_Guilherme_Augusto_Goettnauer_2026_AI.docx
 ```
 
-O caminho é configurável através da propriedade:
+Os caminhos são configuráveis através das propriedades:
 
 ```properties
 email.cv.path
+email.cv.ia.path
 ```
+
+Não há fallback entre perfis: se o arquivo do perfil escolhido não existir, o envio falha.
 
 ---
 
@@ -396,6 +422,8 @@ As principais propriedades utilizadas pela aplicação são:
 ```properties
 email.template.path=/app/templates/email-body.html
 email.cv.path=/app/templates/CV_Guilherme_Augusto_Goettnauer_2026.docx
+email.template.ia.path=/app/templates/email-body-ia.html
+email.cv.ia.path=/app/templates/CV_Guilherme_Augusto_Goettnauer_2026_AI.docx
 ```
 
 Em ambiente Docker, esses arquivos podem ser disponibilizados através de volumes.
@@ -478,6 +506,8 @@ email-sender:
   environment:
     EMAIL_TEMPLATE_PATH: /app/templates/email-body.html
     EMAIL_CV_PATH: /app/templates/CV_Guilherme_Augusto_Goettnauer_2026.docx
+    EMAIL_TEMPLATE_IA_PATH: /app/templates/email-body-ia.html
+    EMAIL_CV_IA_PATH: /app/templates/CV_Guilherme_Augusto_Goettnauer_2026_AI.docx
 ```
 
 A aplicação executa o servidor HTTP na porta:
@@ -619,7 +649,9 @@ Configure os templates:
 
 ```text
 templates/email-body.html
+templates/email-body-ia.html
 templates/CV_Guilherme_Augusto_Goettnauer_2026.docx
+templates/CV_Guilherme_Augusto_Goettnauer_2026_AI.docx
 ```
 
 Execute:
